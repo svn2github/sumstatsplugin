@@ -1,0 +1,10 @@
+<script type="text/javascript" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      xmlns:py="http://genshi.edgewall.org/" py:strip="">
+<style type="text/css">
+<py:for each="group in groups" >
+table.progress tr td.${group['name']} { background: ${group['color']} }
+dl.progress dt.${group['name']} { background: ${group['color']} }
+</py:for>
+</style>
+</script>
