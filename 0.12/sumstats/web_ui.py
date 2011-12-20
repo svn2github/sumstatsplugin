@@ -9,6 +9,7 @@ from trac.web.chrome import ITemplateProvider, add_stylesheet
 from trac.util import as_bool
 from trac.util.translation import _
 
+# FIXME: sql injection
 
 class SumTicketGroupStatsProvider(DefaultTicketGroupStatsProvider):
     
@@ -18,12 +19,14 @@ class SumTicketGroupStatsProvider(DefaultTicketGroupStatsProvider):
     # trac.ini options
     sum_field = Option('sumstats', 'field', '', _("Field name to sum."))
     sum_label = Option('sumstats', 'label', _('tickets'),
-                    _("Plural name of the items being summed."))
+        _("Plural name of the items being summed."))
     drilldown_label = Option('sumstats', 'drilldown_label', _('Ticket status'),
-                    _("Name of the milestone drilldown label."))
+        _("Name of the milestone drilldown label."))
     query_args = Option('sumstats', 'query_args', '',
-                    _("Comma-delimited args to add to all queries."))
-
+        _("Comma-delimited args to add to all queries."))
+    filter = Option('sumstats', 'filter', '',
+        _("An additional, global standard field filter (e.g, type!=epic)."))
+    
     
     def _get_groups(self, ticket_ids=None):
         """Return a set of all ticket group names in order."""
@@ -36,8 +39,7 @@ class SumTicketGroupStatsProvider(DefaultTicketGroupStatsProvider):
     def _update_group(self, group, ticket_ids):
         """Update the given group dict extracted from the [milestone-groups]
         section.  Also, a total count for the group is determined based on
-        the specified field and its value.
-        """
+        the specified field and its value."""
         field = self._get_field(group.get('field','status'))
         if group.get('status') == '*':
             group['status'] = self._get_remaining_values(group, field)
@@ -79,7 +81,7 @@ class SumTicketGroupStatsProvider(DefaultTicketGroupStatsProvider):
     
     def _get_total(self, group, field, ticket_ids):
         """Return either the total (a) count of tickets, or (b) sum of
-        the field values (if the group specifies )"""
+        the field values."""
         if ticket_ids is None:
             return 0.0
         
@@ -88,40 +90,48 @@ class SumTicketGroupStatsProvider(DefaultTicketGroupStatsProvider):
         
         db = self.env.get_db_cnx()
         cursor = db.cursor()
-        query = "SELECT "
+        sql = "SELECT "
         id_list = ",".join([str(x) for x in sorted(ticket_ids)])
         
         # handle count vs. sum
         if sum_field:
             if 'custom' in sum_field:
-                query += "SUM(sf.value) "
+                sql += "SUM(sf.value) "
             else:
-                query += "SUM(%s) " % self.sum_field
+                sql += "SUM(%s) " % self.sum_field
         else:
-            query += "COUNT(*) "
-        query += "FROM ticket t "
+            sql += "COUNT(*) "
+        sql += "FROM ticket t "
         
         # add sum field join
         if sum_field:
-            query += "LEFT OUTER JOIN ticket_custom sf ON sf.ticket = t.id" +\
+            sql += "LEFT OUTER JOIN ticket_custom sf ON sf.ticket = t.id" +\
                      " AND sf.name='%s' " % self.sum_field
         
         # handle built-in vs. custom field
         value = group.get('status','')
         vals = ','.join(["'%s'" % v.strip() for v in value.split(',')])
         if 'custom' in field:
-            query += "LEFT OUTER JOIN ticket_custom ff ON ff.ticket = t.id" +\
+            sql += "LEFT OUTER JOIN ticket_custom ff ON ff.ticket = t.id" +\
                      " AND ff.name='%s' WHERE ff.value IN (%s) " % (name,vals)
         else:
-            query += "WHERE t.%s IN (%s) " % (name,vals)
+            sql += "WHERE t.%s IN (%s) " % (name,vals)
+        
+        # apply the filter (if any)
+        if self.filter:
+            fld,val = self.filter.split('=',1)
+            if fld.endswith('!'):
+                sql += "AND t.%s != '%s' " % (fld[:-1],val)
+            else:
+                sql += "AND t.%s = '%s' " % (fld,val)
         
         # assume only open tickets
         if name not in ('status','resolution'):
-            query += "AND t.status != 'closed' "
+            sql += "AND t.status != 'closed' "
             group.get('query_args').setdefault('status', []).append('!closed')
         
-        query += "AND t.id IN (%s);" % id_list
-        cursor.execute(query)
+        sql += "AND t.id IN (%s);" % id_list
+        cursor.execute(sql)
         for (total,) in cursor:
             return float(total or 0.0)
         return 0.0
