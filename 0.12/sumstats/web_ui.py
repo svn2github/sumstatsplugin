@@ -406,7 +406,7 @@ class SumTicketDataSourceProvider(Component):
          AND COALESCE(tc3.newvalue,t.milestone)='%(milestone)s' 
         """ % {'sum':sum,'field':self.sum_field,
                'day':ms,'milestone':milestone.name}
-        #self.log.debug("burndown day %s:%s" % (str(day),sql))
+        self.log.debug("burndown day %s:%s" % (str(day),sql))
         
         # apply the filter (if any)
         for filter in self.filter:
