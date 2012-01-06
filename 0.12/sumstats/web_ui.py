@@ -338,7 +338,7 @@ class SumTicketDataSourceProvider(Component):
         
         # fetch the data for each day
         rows = []
-        day = start_date
+        day = self._get_day(start_date, 'end') # include whole day
         while day <= buffer:
             if day > end_date:
                 total,done,todo = 0.0,0.0,0.0
