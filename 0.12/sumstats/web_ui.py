@@ -122,7 +122,6 @@ class SumTicketGroupStatsProvider(DefaultTicketGroupStatsProvider):
             sql += "WHERE t.%s IN (%s) " % (name,vals)
         
         # apply the filter (if any)
-        print type(self.filter), self.filter
         for filter in self.filter:
             fld,val = filter.split('=',1)
             if fld.endswith('!'):
