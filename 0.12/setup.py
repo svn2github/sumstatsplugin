@@ -7,7 +7,7 @@ setup(
     name=PACKAGE, version=VERSION,
     description='Sums a field for Roadmap/Milestone stats',
     author="Rob Guttman", author_email="guttman@alum.mit.edu",
-    license='GPL', url='http://trac-hacks.org/wiki/TracSumStatsPlugin',
+    license='GPL', url='http://trac-hacks.org/wiki/SumStatsPlugin',
     packages = ['sumstats'],
     package_data = {'sumstats':['templates/*.css']},
     entry_points = {'trac.plugins':['sumstats.web_ui = sumstats.web_ui']}
