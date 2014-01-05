@@ -29,7 +29,7 @@ class SumTicketGroupStatsProvider(DefaultTicketGroupStatsProvider):
     query_args = Option('sumstats', 'query_args', '',
         _("Comma-delimited args to add to all queries."))
     filter = ListOption('sumstats', 'filter', [],
-        _("Filters out tickets to sum (e.g, type!=epic)."))
+        doc=_("Filters out tickets to sum (e.g, type!=epic)."))
     
     
     def _get_groups(self, ticket_ids=None):
@@ -122,6 +122,7 @@ class SumTicketGroupStatsProvider(DefaultTicketGroupStatsProvider):
             sql += "WHERE t.%s IN (%s) " % (name,vals)
         
         # apply the filter (if any)
+        print type(self.filter), self.filter
         for filter in self.filter:
             fld,val = filter.split('=',1)
             if fld.endswith('!'):
