@@ -186,11 +186,15 @@ class SumTicketGroupStatsProvider(DefaultTicketGroupStatsProvider):
 
 class SumTicketDataSourceProvider(Component):
     implements(IRequestHandler)
-    
-    sum_field = Option('sumstats', 'field', '', _("Field name to sum."))
-    filter = ListOption('sumstats', 'filter', '',
-        _("Filters out tickets to sum (e.g, type!=epic)."))
-    
+
+    @property
+    def sum_field(self):
+        return self.config.get('sumstats', 'field')
+
+    @property
+    def filter(self):
+        return self.config.getlist('sumstats', 'filter')
+
     # IRequestHandler methods
     def match_request(self, req):
         return req.path_info.startswith('/sumstats/query') and \
