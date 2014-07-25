@@ -1,8 +1,18 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2011-2012 Rob Guttman <guttman@alum.mit.edu>
+# All rights reserved.
+#
+# This software is licensed as described in the file COPYING, which
+# you should have received as part of this distribution.
+#
+
 import re
 import copy
 import time
 import urllib
 from datetime import datetime, timedelta
+
 from trac.core import *
 from trac.config import Option, ListOption
 from trac.ticket import TicketSystem, Milestone
